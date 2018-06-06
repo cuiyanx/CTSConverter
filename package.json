@@ -1,0 +1,27 @@
+{
+  "name": "nntesttransfer",
+  "version": "1.0.0",
+  "description": "Transfer nn test case to webml test case",
+  "main": "./src/main.js",
+  "directories": {
+    "examples": "examples",
+    "src": "src"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cuiyanx/nnTestTransfer.git"
+  },
+  "author": "yanx.cui@intel.com",
+  "license": "Apache 2.0",
+  "bugs": {
+    "url": "https://github.com/cuiyanx/nnTestTransfer/issues"
+  },
+  "homepage": "https://github.com/cuiyanx/nnTestTransfer#readme"
+}
