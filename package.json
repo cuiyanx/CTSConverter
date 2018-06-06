@@ -4,15 +4,19 @@
   "description": "Transfer nn test case to webml test case",
   "main": "./src/main.js",
   "directories": {
-    "examples": "examples",
-    "src": "src"
+    "examples": "example files",
+    "lib": "lib files",
+    "src": "src files",
+    "tmp": "tmp files",
+    "output": "output files"
   },
   "dependencies": {
   },
   "devDependencies": {
   },
   "scripts": {
-    "create-tmp": "node ./src/create-tmp-file.js"
+    "start": "npm run create-tmp && node ./src/main.js",
+    "create-tmp": "node ./lib/create-tmp-file.js"
   },
   "repository": {
     "type": "git",
