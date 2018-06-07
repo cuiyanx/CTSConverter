@@ -2,12 +2,9 @@
   "name": "nntesttransfer",
   "version": "1.0.0",
   "description": "Transfer nn test case to webml test case",
-  "main": "./src/main.js",
+  "main": "./src/main.py",
   "directories": {
-    "examples": "example files",
-    "lib": "lib files",
     "src": "src files",
-    "tmp": "tmp files",
     "output": "output files"
   },
   "dependencies": {
@@ -15,8 +12,7 @@
   "devDependencies": {
   },
   "scripts": {
-    "start": "npm run create-tmp && node ./src/main.js",
-    "create-tmp": "node ./lib/create-tmp-file.js"
+    "start": "python ./src/main.py"
   },
   "repository": {
     "type": "git",
