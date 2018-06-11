@@ -48,16 +48,22 @@ class Phase(object):
   def __init__(self):
     self.__objects = []
     self.__contents = []
+    self.__contentsjs = []
     self.__dict_of_objects = {}
 
-  def append(self, obj, x):
+  def append(self, obj, x, y):
     self.__objects.append(obj)
     self.__contents.append(x)
+    self.__contentsjs.append(y)
     self.__dict_of_objects[obj.ID()] = obj
 
   def dump(self, filename):
-    for x in self.__contents:
-      print ("  " + x + ";", file=filename)
+    if JS_FLAG:
+      for y in self.__contentsjs:
+        print (y, file=filename)
+    else :
+      for x in self.__contents:
+        print ("  " + x + ";", file=filename)
 
   def objects(self):
     return self.__objects
@@ -173,7 +179,14 @@ class Type(object):
 
   def dump(filename):
     for key, value in sorted(Type.__types.items()):
-      print ("  OperandType " + str(value.__name) + "(Type::" + str(key) + ");", file=filename)
+      if JS_FLAG:
+        if str(key.split(",")[0]) == "INT32":
+          print ("    const " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + "};", file=filename)
+        else :
+          print ("    const " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: " + str(key[len(key.split(",")[0]) + 2:]) + "};", file=filename)
+          print ("    const tensorLength" + str(value.__name[4:]) + " = product(" + str(value.__name) + ".dimensions);", file=filename)
+      else :
+        print ("  OperandType " + str(value.__name) + "(Type::" + str(key) + ");", file=filename)
 
   def get_raw_shape(self):
     return self.__shape
@@ -226,7 +239,9 @@ class Operand(Value):
     def_string = (
         "auto " + self.get_name() + " = "\
             "model->addOperand(&" + vt.get_name() + ")")
-    Operand.operands.append(self, def_string)
+    js_string = ("    let " + self.get_name() +
+                 " = operandIndex++;\n    model.addOperand(" + vt.get_name() + ");\n")
+    Operand.operands.append(self, def_string, js_string)
 
   # By default, produce nothing (when asked by the Topological Sort phase)
   def Definition(self):
@@ -341,19 +356,27 @@ class Parameter(Input):
     Input.__init__(self, name, vt, shape, False)
     self.initializer = initializer
     self.cpptype = TypeLookup.get_cpptype(vt)
+    self.isFloat = TypeLookup.is_float(vt)
   def is_internal(self):
     return True
   def Definition(self):
-    init_name = self.get_name() + "_init"
-    initializer = [str(x) for x in self.initializer]
-    if self.cpptype == "float":
-      initializer = [ pretty_print_as_float(x) for x in initializer]
-    init = self.cpptype + " " + init_name + "[]"
-    init = "static " + init + " = {" + ", ".join(initializer) + "};"
-    args = [ self.get_name(), init_name,
-            "sizeof(" + self.cpptype + ") * " + str(len(self.initializer)) ]
-    stmt = "\n  ".join([init,
-                      "model->setOperandValue(" + ", ".join(args)+");"])
+    if JS_FLAG:
+      if self.isFloat:
+        init_array = "new Float32Array(nn.FUSED_NONE)"
+      else :
+        init_array = "new Int32Array(nn.FUSED_NONE)"
+      stmt = "  model.setOperandValue(" + self.get_name() + ", " + init_array + ");"
+    else :
+      init_name = self.get_name() + "_init"
+      initializer = [str(x) for x in self.initializer]
+      if self.cpptype == "float":
+        initializer = [ pretty_print_as_float(x) for x in initializer]
+      init = self.cpptype + " " + init_name + "[]"
+      init = "static " + init + " = {" + ", ".join(initializer) + "};"
+      args = [ self.get_name(), init_name,
+              "sizeof(" + self.cpptype + ") * " + str(len(self.initializer)) ]
+      stmt = "\n  ".join([init,
+                        "model->setOperandValue(" + ", ".join(args)+");"])
     return stmt
   def is_weight(self):
     return True
@@ -410,8 +433,11 @@ class Operation(Definitions, Uses, Traversable):
   def Definition(self):
     inputs = Operand.print_operands(self.ins);
     outputs = Operand.print_operands(self.outs);
-    return "model->addOperation(ANEURALNETWORKS_"+self.optype+", " + \
-        "{"+", ".join(inputs)+"}, {" + ", ".join(outputs) + "});"
+    if JS_FLAG:
+      return "  model.addOperation(nn." + self.optype + ", " + "[" + ", ".join(inputs) + "], [" + ", ".join(outputs) + "]);"
+    else :
+      return "model->addOperation(ANEURALNETWORKS_"+self.optype+", " + \
+          "{"+", ".join(inputs)+"}, {" + ", ".join(outputs) + "});"
 
   # Get Python-ish dump for the op
   def PyDefinition(self):
@@ -623,19 +649,26 @@ class Example():
     return tuple_init.format(**tuple_contents)
 
 
-  def dump(example_file):
-    if len(Example.__examples) > 0:
-      spec_file = " (from: %s)" % (FileNames.SpecFile)
-      print ('// Generated file%s. Do not edit' % (spec_file),
-             file = example_file)
-    for i, o in Example.__examples:
-      print ('// Begin of an example', file = example_file)
-      print ('{', file = example_file)
-      inputs = Example.dump_mixed_types(i)
-      outputs = Example.dump_mixed_types(o)
-      print ('//Input(s)\n%s,' % inputs , file = example_file)
-      print ('//Output(s)\n%s' % outputs, file = example_file)
-      print ('}, // End of an example', file = example_file)
+  def dump(filename):
+    if JS_FLAG:
+      for i, o in Example.__examples:
+        for name, value in i.items():
+          print ('  const %s_value = %s;'%(name, value), file = filename)
+        for name, value in o.items():
+          print ('  const %s_expect = %s;'%(name, value), file = filename)
+    else :
+      if len(Example.__examples) > 0:
+        spec_file = " (from: %s)" % (FileNames.SpecFile)
+        print ('// Generated file%s. Do not edit' % (spec_file),
+               file = filename)
+      for i, o in Example.__examples:
+        print ('// Begin of an example', file = filename)
+        print ('{', file = filename)
+        inputs = Example.dump_mixed_types(i)
+        outputs = Example.dump_mixed_types(o)
+        print ('//Input(s)\n%s,' % inputs , file = filename)
+        print ('//Output(s)\n%s' % outputs, file = filename)
+        print ('}, // End of an example', file = filename)
 
   # Similar to dump_dict, but in python. Used by the slicing tool
   # if referenced is not None, only print operands that are present there
@@ -706,31 +739,64 @@ def import_source():
       "-m", "--model", help="the output model file", default="-")
   parser.add_argument(
       "-e", "--example", help="the output example file", default="-")
+  parser.add_argument(
+      "-js", "--jsTest", help="the output javascript file", default="-")
   args = parser.parse_args()
 
   if os.path.exists(args.spec):
     FileNames.SpecFile = os.path.basename(args.spec)
     exec (open(args.spec).read())
 
-  return (args.model, args.example)
+  return (args.spec, args.model, args.example, args.jsTest)
 
 
-def print_cts_op(model_file, op):
+def print_cts_op(filename, op):
   fmt = op.Definition()
   if fmt is not None:
-    print ("  %s" % fmt, file = model_file)
+    print ("  %s" % fmt, file = filename)
   return True
 
 if __name__ == '__main__':
-  (model, example) = import_source()
+  (spec, model, example, jsTest) = import_source()
   # Boilerplate
   args = ""
   if len(ModelArgument.get_arguments()) > 0:
     args = ", " + ", ".join(ModelArgument.get_arguments())
 
+  print("Input nn test: %s" % spec, file=sys.stderr)
   print("Output CTS model: %s" % model, file=sys.stderr)
   print("Output example:" + example, file=sys.stderr)
+  print("Output js test: %s \n" % jsTest, file=sys.stderr)
 
+  JS_FLAG = True
+  with smart_open(jsTest) as js_file:
+    tmp_string = " (from: %s)" % (FileNames.SpecFile)
+    print ('// Generated file%s. Do not edit\n'%(tmp_string), file = js_file)
+
+    tmp_string = FileNames.SpecFile[:-7].capitalize().replace("_", " ")
+    print ('describe("%s test", function() {'%(tmp_string), file = js_file)
+    print ('  const assert = chai.assert;', file = js_file)
+    print ('  const nn = navigator.ml.getNeuralNetworkContest();\n', file = js_file)
+
+    Example.dump(js_file)
+    print ('', file = js_file)
+
+    print ('  it("check result", async function() {', file = js_file)
+    print ('    const model = await nn.createModel(' + args + ');\n', file = js_file)
+    print ('    let operandIndex = 0;', file = js_file)
+
+    Type.dump(js_file)
+    print ('', file = js_file)
+
+    Operand.operands.dump(js_file)
+
+    TopologicalSort(lambda x: print_cts_op(js_file, x))
+    print ('', file = js_file)
+
+    print ('  });', file = js_file)
+    print ('});', file = js_file)
+
+  JS_FLAG = False
   with smart_open(model) as model_file:
     spec_file = " (from: %s)" % (FileNames.SpecFile)
 
@@ -765,5 +831,6 @@ if __name__ == '__main__':
     print ("}", file=model_file)
     print (IgnoredOutput.gen_ignored(), file=model_file)
 
+  JS_FLAG = False
   with smart_open(example) as example_file:
     Example.dump(example_file)
