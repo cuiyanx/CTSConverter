@@ -13,6 +13,10 @@ with open(name_file) as file_names:
 input_path_parent = "./src/nn/specs/"
 output_path_parent = "./output/"
 
+if os.path.exists(output_path_parent):
+  cmd = "rm -r " + output_path_parent
+  os.system(cmd)
+
 versions = os.listdir(input_path_parent)
 
 for version in versions:
@@ -45,4 +49,4 @@ for version in versions:
           os.makedirs(output_path_jsTest)
 
         cmd = "python3 ./src/test_generator.py " + input_file + " -m " + output_file_model + " -e " + output_file_example + " -js " + output_file_jsTest
-        os.system(cmd);
+        os.system(cmd)
