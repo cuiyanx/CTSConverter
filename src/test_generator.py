@@ -180,7 +180,7 @@ class Type(object):
   def dump(filename):
     for key, value in sorted(Type.__types.items()):
       if JS_FLAG:
-        if str(key.split(",")[0]) == "INT32":
+        if str(key.split(",")[0]) == "INT32" or str(key.split(",")[0]) == "TENSOR_INT32" or str(key.split(",")[0]) == "UINT32":
           print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + "};", file = filename)
         else :
           print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: [" + str(key[len(key.split(",")[0]) + 3:-1]) + "]};", file = filename)
@@ -799,7 +799,7 @@ def js_print_set_operand_value(obj_inputs, filename):
       if not obj_input == js_obj_input:
         for obj in js_obj:
           if str(obj_input) == obj.get("obj"):
-            if obj.get("type") == "INT32":
+            if obj.get("type") == "INT32" or obj.get("type") == "TENSOR_INT32" or obj.get("type") == "UINT32":
               str_array = "Int32Array"
             else :
               str_array = "Float32Array"
@@ -818,7 +818,7 @@ def js_print_set_input_value(only_input, filename):
 
   for obj in js_obj:
     if str(only_input) == obj.get("obj"):
-      if obj.get("type") == "INT32":
+      if obj.get("type") == "INT32" or obj.get("type") == "TENSOR_INT32" or obj.get("type") == "UINT32":
         str_array = "Int32Array"
       else :
         str_array = "Float32Array"
@@ -836,7 +836,7 @@ def js_print_set_output_value(obj_outputs, filename):
   for obj_output in obj_outputs:
     for obj in js_obj:
       if str(obj_output) == obj.get("obj"):
-        if obj.get("type") == "INT32":
+        if obj.get("type") == "INT32" or obj.get("type") == "TENSOR_INT32" or obj.get("type") == "UINT32":
           str_array = "Int32Array"
         else :
           str_array = "Float32Array"
@@ -857,8 +857,8 @@ def js_print_assert(obj_outputs, filename):
         print ("    }", file = filename)
 
 def js_print_model(ex_input, ex_output, count, filename):
-  print ("", file = js_file)
-  print ("  it('check result example %s', async function() {"%count, file = js_file)
+  print ("", file = filename)
+  print ("  it('check result example %s', async function() {"%count, file = filename)
   print ("    var model = await nn.createModel(" + args + ");", file = filename)
   print ("    var operandIndex = 0;\n", file = filename)
 
@@ -873,32 +873,32 @@ def js_print_model(ex_input, ex_output, count, filename):
 
   Operand.operands.dump(filename)
 
-  print ("", file = js_file)
+  print ("", file = filename)
 
   obj_inputs = get_obj_inputs()
   obj_outputs = get_obj_outputs()
 
-  js_obj_input = js_print_set_operand_value(obj_inputs, js_file)
+  js_obj_input = js_print_set_operand_value(obj_inputs, filename)
 
-  TopologicalSort(lambda x: print_cts_op(js_file, x))
-  print ("", file = js_file)
+  TopologicalSort(lambda x: print_cts_op(filename, x))
+  print ("", file = filename)
 
-  print ("    model.identifyInputsAndOutputs([" + js_obj_input + "], [" + ", ".join(obj_outputs) + "]);", file = js_file)
-  print ("    await model.finish();\n", file = js_file)
+  print ("    model.identifyInputsAndOutputs([" + js_obj_input + "], [" + ", ".join(obj_outputs) + "]);", file = filename)
+  print ("    await model.finish();\n", file = filename)
 
-  print ("    let compilation = await model.createCompilation();", file = js_file)
-  print ("    compilation.setPreference(nn.PREFER_FAST_SINGLE_ANSWER);", file = js_file)
-  print ("    await compilation.finish();\n", file = js_file)
-  print ("    let execution = await compilation.createExecution();\n", file = js_file)
+  print ("    let compilation = await model.createCompilation();", file = filename)
+  print ("    compilation.setPreference(nn.PREFER_FAST_SINGLE_ANSWER);", file = filename)
+  print ("    await compilation.finish();\n", file = filename)
+  print ("    let execution = await compilation.createExecution();\n", file = filename)
 
-  js_print_set_input_value(js_obj_input, js_file)
-  js_print_set_output_value(obj_outputs, js_file)
+  js_print_set_input_value(js_obj_input, filename)
+  js_print_set_output_value(obj_outputs, filename)
 
-  print ("    await execution.startCompute();\n", file = js_file)
+  print ("    await execution.startCompute();\n", file = filename)
 
-  js_print_assert(obj_outputs, js_file)
+  js_print_assert(obj_outputs, filename)
 
-  print ('  });', file = js_file)
+  print ('  });', file = filename)
 
 
 if __name__ == '__main__':
@@ -924,7 +924,7 @@ if __name__ == '__main__':
     tmp_string = FileNames.SpecFile[:-7].capitalize().replace("_", " ")
     print ("describe('%s test', function() {"%(tmp_string), file = js_file)
     print ("  const assert = chai.assert;", file = js_file)
-    print ("  const nn = navigator.ml.getNeuralNetworkContext();\n", file = js_file)
+    print ("  const nn = navigator.ml.getNeuralNetworkContext();", file = js_file)
 
     count = 1
     for i, o in Example.get_examples():
