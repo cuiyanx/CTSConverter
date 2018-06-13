@@ -181,10 +181,10 @@ class Type(object):
     for key, value in sorted(Type.__types.items()):
       if JS_FLAG:
         if str(key.split(",")[0]) == "INT32":
-          print ("    const " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + "};", file = filename)
+          print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + "};", file = filename)
         else :
-          print ("    const " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: [" + str(key[len(key.split(",")[0]) + 3:-1]) + "]};", file = filename)
-          print ("    const " + str(value.__name) + "_length = product(" + str(value.__name) + ".dimensions);", file = filename)
+          print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: [" + str(key[len(key.split(",")[0]) + 3:-1]) + "]};", file = filename)
+          print ("    var " + str(value.__name) + "_length = product(" + str(value.__name) + ".dimensions);", file = filename)
       else :
         print ("  OperandType " + str(value.__name) + "(Type::" + str(key) + ");", file = filename)
 
@@ -239,8 +239,8 @@ class Operand(Value):
     def_string = (
         "auto " + self.get_name() + " = "\
             "model->addOperand(&" + vt.get_name() + ")")
-    js_string = ("    let " + self.get_name() +
-                 " = operandIndex++;\n    model.addOperand(" + vt.get_name() + ");\n")
+    js_string = ("    var " + self.get_name() +
+                 " = operandIndex++;\n    model.addOperand(" + vt.get_name() + ");")
     Operand.operands.append(self, def_string, js_string)
 
     js_format["obj"] = self.get_name()
@@ -368,23 +368,24 @@ class Parameter(Input):
   def is_internal(self):
     return True
   def Definition(self):
+    init_name = self.get_name() + "_init"
+    initializer = [str(x) for x in self.initializer]
+    js_data = initializer
+    if self.cpptype == "float":
+      initializer = [ pretty_print_as_float(x) for x in initializer]
+    init = self.cpptype + " " + init_name + "[]"
+    init = "static " + init + " = {" + ", ".join(initializer) + "};"
+    args = [ self.get_name(), init_name,
+            "sizeof(" + self.cpptype + ") * " + str(len(self.initializer)) ]
+
     if JS_FLAG:
       if self.isFloat:
-        init_array = "new Float32Array([nn.FUSED_NONE])"
+        array_str = "new Float32Array"
       else :
-        init_array = "new Int32Array([nn.FUSED_NONE])"
-      stmt = "  model.setOperandValue(" + self.get_name() + ", " + init_array + ");"
+        array_str = "new Int32Array"
+      stmt = "  model.setOperandValue(" + self.get_name() + ", " + array_str + "([" + ", ".join(js_data) + "]));"
     else :
-      init_name = self.get_name() + "_init"
-      initializer = [str(x) for x in self.initializer]
-      if self.cpptype == "float":
-        initializer = [ pretty_print_as_float(x) for x in initializer]
-      init = self.cpptype + " " + init_name + "[]"
-      init = "static " + init + " = {" + ", ".join(initializer) + "};"
-      args = [ self.get_name(), init_name,
-              "sizeof(" + self.cpptype + ") * " + str(len(self.initializer)) ]
-      stmt = "\n  ".join([init,
-                        "model->setOperandValue(" + ", ".join(args)+");"])
+      stmt = "\n  ".join([init, "model->setOperandValue(" + ", ".join(args)+");"])
     return stmt
   def is_weight(self):
     return True
@@ -660,25 +661,18 @@ class Example():
     return Example.__examples
 
   def dump(filename):
-    if JS_FLAG:
-      for i, o in Example.__examples:
-        for name, value in i.items():
-          print ('  const %s_value = %s;'%(name, value), file = filename)
-        for name, value in o.items():
-          print ('  const %s_expect = %s;'%(name, value), file = filename)
-    else :
-      if len(Example.__examples) > 0:
-        spec_file = " (from: %s)" % (FileNames.SpecFile)
-        print ('// Generated file%s. Do not edit' % (spec_file),
-               file = filename)
-      for i, o in Example.__examples:
-        print ('// Begin of an example', file = filename)
-        print ('{', file = filename)
-        inputs = Example.dump_mixed_types(i)
-        outputs = Example.dump_mixed_types(o)
-        print ('//Input(s)\n%s,' % inputs , file = filename)
-        print ('//Output(s)\n%s' % outputs, file = filename)
-        print ('}, // End of an example', file = filename)
+    if len(Example.__examples) > 0:
+      spec_file = " (from: %s)" % (FileNames.SpecFile)
+      print ('// Generated file%s. Do not edit' % (spec_file),
+             file = filename)
+    for i, o in Example.__examples:
+      print ('// Begin of an example', file = filename)
+      print ('{', file = filename)
+      inputs = Example.dump_mixed_types(i)
+      outputs = Example.dump_mixed_types(o)
+      print ('//Input(s)\n%s,' % inputs , file = filename)
+      print ('//Output(s)\n%s' % outputs, file = filename)
+      print ('}, // End of an example', file = filename)
 
   # Similar to dump_dict, but in python. Used by the slicing tool
   # if referenced is not None, only print operands that are present there
@@ -773,21 +767,31 @@ def get_obj_outputs():
   return Operand.print_operands(Output.get_outputs())
 
 def js_obj_supplement():
+  o_value = []
+
   for i, o in Example.get_examples():
     for name, value in i.items():
       for obj in js_obj:
         if str(name) == obj["obj"]:
-          obj.setdefault("value_name", str(name) + "_value")
-          obj.setdefault("value", value)
+          obj["value_length"] = len(Example.get_examples())
+          obj["value_name"] = str(name) + "_value"
+          obj["value"] = value
 
     for name, value in o.items():
       for obj in js_obj:
         if str(name) == obj["obj"]:
-          obj.setdefault("value_name", str(name) + "_expect")
-          obj.setdefault("value", value)
-          obj.setdefault("length", str(obj["type_name"]) + "_length")
+          obj["value_length"] = len(Example.get_examples())
+          obj["value_name"] = str(name) + "_expect"
+          obj["length"] = str(obj["type_name"]) + "_length"
+          o_value.append(value)
+          obj["value"] = o_value
 
-def js_print_operand_value(obj_inputs, filename):
+def js_print_examples(name, value, filename):
+  for obj in js_obj:
+    if str(name) == obj.get("obj"):
+      print ("    let %s = %s;"%(obj.get("value_name"), value), file = filename)
+
+def js_print_set_operand_value(obj_inputs, filename):
   if len(obj_inputs) > 1:
     js_obj_input = obj_inputs[0]
 
@@ -800,16 +804,16 @@ def js_print_operand_value(obj_inputs, filename):
             else :
               str_array = "Float32Array"
 
-            obj.setdefault("input_name", obj.get("obj") + "_input")
+            obj["input_name"] = obj.get("obj") + "_input"
 
-            print ("    let %s = new %s(%s);"%(obj.get("input_name"), str_array, obj.get("value")), file = filename)
+            print ("    let %s = new %s(%s);"%(obj.get("input_name"), str_array, obj.get("value_name")), file = filename)
             print ("    model.setOperandValue(%s, %s);\n"%(obj.get("obj"), obj.get("input_name")), file = filename)
   else :
     js_obj_input = obj_inputs[0]
 
   return js_obj_input
 
-def js_print_only_input(only_input, filename):
+def js_print_set_input_value(only_input, filename):
   count = 0
 
   for obj in js_obj:
@@ -819,14 +823,14 @@ def js_print_only_input(only_input, filename):
       else :
         str_array = "Float32Array"
 
-      obj.setdefault("input_name", obj.get("obj") + "_input")
+      obj["input_name"] = obj.get("obj") + "_input"
 
-      print ("    let %s = new %s(%s);"%(obj.get("input_name"), str_array, obj.get("value")), file = filename)
+      print ("    let %s = new %s(%s);"%(obj.get("input_name"), str_array, obj.get("value_name")), file = filename)
       print ("    execution.setInput(%s, %s);\n"%(count, obj.get("input_name")), file = filename)
 
       count = count + 1
 
-def js_print_output_value(obj_outputs, filename):
+def js_print_set_output_value(obj_outputs, filename):
   count = 0
 
   for obj_output in obj_outputs:
@@ -837,7 +841,7 @@ def js_print_output_value(obj_outputs, filename):
         else :
           str_array = "Float32Array"
 
-        obj.setdefault("output_name", obj.get("obj") + "_output")
+        obj["output_name"] = obj.get("obj") + "_output"
 
         print ("    let %s = new %s(%s);"%(obj.get("output_name"), str_array, obj.get("length")), file = filename)
         print ("    execution.setOutput(%s, %s);\n"%(count, obj.get("output_name")), file = filename)
@@ -850,11 +854,55 @@ def js_print_assert(obj_outputs, filename):
       if str(obj_output) == obj.get("obj"):
         print ("    for (let i = 0; i < %s; ++i) {"%obj.get("length"), file = filename)
         print ("      assert.isTrue(almostEqual(%s[i], %s[i]));"%(obj.get("output_name"), obj.get("value_name")), file = filename)
-        print ("    }\n", file = filename)
+        print ("    }", file = filename)
+
+def js_print_model(ex_input, ex_output, count, filename):
+  print ("", file = js_file)
+  print ("  it('check result example %s', async function() {"%count, file = js_file)
+  print ("    var model = await nn.createModel(" + args + ");", file = filename)
+  print ("    var operandIndex = 0;\n", file = filename)
+
+  for name, value in ex_input.items():
+    js_print_examples(name, value, filename)
+  for name, value in ex_output.items():
+    js_print_examples(name, value, filename)
+
+  print ("", file = filename)
+  Type.dump(filename)
+  print ("", file = filename)
+
+  Operand.operands.dump(filename)
+
+  print ("", file = js_file)
+
+  obj_inputs = get_obj_inputs()
+  obj_outputs = get_obj_outputs()
+
+  js_obj_input = js_print_set_operand_value(obj_inputs, js_file)
+
+  TopologicalSort(lambda x: print_cts_op(js_file, x))
+  print ("", file = js_file)
+
+  print ("    model.identifyInputsAndOutputs([" + js_obj_input + "], [" + ", ".join(obj_outputs) + "]);", file = js_file)
+  print ("    await model.finish();\n", file = js_file)
+
+  print ("    let compilation = await model.createCompilation();", file = js_file)
+  print ("    compilation.setPreference(nn.PREFER_FAST_SINGLE_ANSWER);", file = js_file)
+  print ("    await compilation.finish();\n", file = js_file)
+  print ("    let execution = await compilation.createExecution();\n", file = js_file)
+
+  js_print_set_input_value(js_obj_input, js_file)
+  js_print_set_output_value(obj_outputs, js_file)
+
+  print ("    await execution.startCompute();\n", file = js_file)
+
+  js_print_assert(obj_outputs, js_file)
+
+  print ('  });', file = js_file)
 
 
 if __name__ == '__main__':
-  js_format = {"obj": None, "value_name": None, "value": None, "type_name": None, "type": None, "length": None, "output_name": None, "input_name": None}
+  js_format = {"obj": None, "value_name": None, "value": None, "value_length": None, "type_name": None, "type": None, "length": None, "output_name": None, "input_name": None}
   js_obj = []
   js_format.clear()
 
@@ -878,43 +926,15 @@ if __name__ == '__main__':
     print ("  const assert = chai.assert;", file = js_file)
     print ("  const nn = navigator.ml.getNeuralNetworkContext();\n", file = js_file)
 
-    Example.dump(js_file)
-    print ("", file = js_file)
+    count = 1
+    for i, o in Example.get_examples():
+      js_print_model(i, o, count, js_file)
+      count = count + 1
 
-    print ("  it('check result', async function() {", file = js_file)
-    print ("    const model = await nn.createModel(" + args + ");\n", file = js_file)
-    print ("    let operandIndex = 0;", file = js_file)
-
-    Type.dump(js_file)
-    print ("", file = js_file)
-
-    Operand.operands.dump(js_file)
-
-    obj_inputs = get_obj_inputs()
-    obj_outputs = get_obj_outputs()
-
-    js_obj_input = js_print_operand_value(obj_inputs, js_file)
-
-    TopologicalSort(lambda x: print_cts_op(js_file, x))
-    print ("", file = js_file)
-
-    print ("    model.identifyInputsAndOutputs([" + js_obj_input + "], [" + ", ".join(obj_outputs) + "]);", file = js_file)
-
-    print ("    await model.finish();\n", file = js_file)
-    print ("    let compilation = await model.createCompilation();", file = js_file)
-    print ("    compilation.setPreference(nn.PREFER_FAST_SINGLE_ANSWER);", file = js_file)
-    print ("    await compilation.finish();\n", file = js_file)
-    print ("    let execution = await compilation.createExecution();\n", file = js_file)
-
-    js_print_only_input(js_obj_input, js_file)
-    js_print_output_value(obj_outputs, js_file)
-
-    print ("    await execution.startCompute();\n", file = js_file)
-
-    js_print_assert(obj_outputs, js_file)
-
-    print ('  });', file = js_file)
     print ('});', file = js_file)
+
+#    for obj in js_obj:
+#      print (obj, file = sys.stderr)
 
   JS_FLAG = False
   with smart_open(model) as model_file:
