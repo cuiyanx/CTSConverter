@@ -180,10 +180,16 @@ class Type(object):
   def dump(filename):
     for key, value in sorted(Type.__types.items()):
       if JS_FLAG:
-        if str(key.split(",")[0]) == "INT32" or str(key.split(",")[0]) == "TENSOR_INT32" or str(key.split(",")[0]) == "UINT32":
+        if str(key.split(",")[0]) == "INT32" or str(key.split(",")[0]) == "UINT32":
           print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + "};", file = filename)
         else :
-          print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: [" + str(key[len(key.split(",")[0]) + 3:-1]) + "]};", file = filename)
+          if len(str(key[len(key.split(",")[0]) + 3:-1])) == 0:
+            for obj in js_obj:
+              if str(value.__name) == obj.get("type_name"):
+                data_string = obj.get("value")
+          else :
+            data_string = "[" + str(key[len(key.split(",")[0]) + 3:-1]) + "]"
+          print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: " + str(data_string) + "};", file = filename)
           print ("    var " + str(value.__name) + "_length = product(" + str(value.__name) + ".dimensions);", file = filename)
       else :
         print ("  OperandType " + str(value.__name) + "(Type::" + str(key) + ");", file = filename)
@@ -243,13 +249,21 @@ class Operand(Value):
                  " = operandIndex++;\n    model.addOperand(" + vt.get_name() + ");")
     Operand.operands.append(self, def_string, js_string)
 
-    js_format["obj"] = self.get_name()
-    js_format["type_name"] = vt.get_name()
-    js_format["type"] = vt.get_element_type()
+    flag = True
 
-    obj_tmp = js_format.copy()
-    js_obj.append(obj_tmp)
-    js_format.clear()
+    for obj in js_obj:
+      if str(name) == obj.get("obj"):
+        flag = False
+        obj.setdefault("type_name", vt.get_name())
+
+    if flag:
+      js_format["obj"] = self.get_name()
+      js_format["type_name"] = vt.get_name()
+      js_format["type"] = vt.get_element_type()
+
+      obj_tmp = js_format.copy()
+      js_obj.append(obj_tmp)
+      js_format.clear()
 
   # By default, produce nothing (when asked by the Topological Sort phase)
   def Definition(self):
@@ -361,10 +375,28 @@ def pretty_print_as_float(x):
 class Parameter(Input):
   # TODO seems wrong that's an Input.
   def __init__(self, name, vt, shape, initializer):
+    flag = True
+
+    for obj in js_obj:
+      if str(name) == obj.get("obj"):
+        flag = False
+        obj.setdefault("type", vt)
+        obj.setdefault("value", initializer)
+
+    if flag:
+      js_format["obj"] = name
+      js_format["type"] = vt
+      js_format["value"] = initializer
+
+      obj_tmp = js_format.copy()
+      js_obj.append(obj_tmp)
+      js_format.clear()
+
     Input.__init__(self, name, vt, shape, False)
     self.initializer = initializer
     self.cpptype = TypeLookup.get_cpptype(vt)
     self.isFloat = TypeLookup.is_float(vt)
+
   def is_internal(self):
     return True
   def Definition(self):
@@ -767,24 +799,19 @@ def get_obj_outputs():
   return Operand.print_operands(Output.get_outputs())
 
 def js_obj_supplement():
-  o_value = []
-
   for i, o in Example.get_examples():
     for name, value in i.items():
       for obj in js_obj:
         if str(name) == obj["obj"]:
-          obj["value_length"] = len(Example.get_examples())
           obj["value_name"] = str(name) + "_value"
           obj["value"] = value
 
     for name, value in o.items():
       for obj in js_obj:
         if str(name) == obj["obj"]:
-          obj["value_length"] = len(Example.get_examples())
           obj["value_name"] = str(name) + "_expect"
           obj["length"] = str(obj["type_name"]) + "_length"
-          o_value.append(value)
-          obj["value"] = o_value
+          obj["value"] = value
 
 def js_print_examples(name, value, filename):
   for obj in js_obj:
@@ -902,7 +929,7 @@ def js_print_model(ex_input, ex_output, count, filename):
 
 
 if __name__ == '__main__':
-  js_format = {"obj": None, "value_name": None, "value": None, "value_length": None, "type_name": None, "type": None, "length": None, "output_name": None, "input_name": None}
+  js_format = {"obj": None, "value_name": None, "value": None, "type_name": None, "type": None, "length": None, "output_name": None, "input_name": None}
   js_obj = []
   js_format.clear()
 
