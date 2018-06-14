@@ -9,9 +9,3 @@ Transfer [nn](https://android.googlesource.com/platform/frameworks/ml) test case
 ```sh
 $ npm start
 ```
-
-## Passed JS test case
-* `add.js`
-* `mul.js`
-* `concat_float_1.js`
-* `concat_float_2.js`
