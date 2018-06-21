@@ -880,12 +880,33 @@ def js_print_assert(obj_outputs, filename):
     for obj in js_obj:
       if str(obj_output) == obj.get("obj"):
         print ("    for (let i = 0; i < %s; ++i) {"%obj.get("length"), file = filename)
-        print ("      assert.isTrue(almostEqual(%s[i], %s[i]));"%(obj.get("output_name"), obj.get("value_name")), file = filename)
+        print ("      assert.isTrue(almostEqualCTS(%s[i], %s[i]));"%(obj.get("output_name"), obj.get("value_name")), file = filename)
         print ("    }", file = filename)
 
-def js_print_model(ex_input, ex_output, count, filename):
+def js_print_model(ex_input, ex_output, count, flag, filename):
   print ("", file = filename)
-  print ("  it('check result example %s', async function() {"%count, file = filename)
+
+  test_name = ""
+  test_index = ""
+  test_info = FileNames.SpecFile[:-7].capitalize().replace("_", " ")
+
+  if test_info.split(" ")[-1].isdigit():
+    test_name = " ".join(test_info.split(" ")[:-1])
+    test_index = test_info.split(" ")[-1]
+  else:
+    test_name = test_info
+
+  if flag:
+    if test_index == "":
+      print ("  it('check result for %s example', async function() {"%test_name, file = filename)
+    else:
+      print ("  it('check result for %s example/%s', async function() {"%(test_name, test_index), file = filename)
+  else:
+    if test_index == "":
+      print ("  it('check result for %s example-%s', async function() {"%(test_name, count), file = filename)
+    else:
+      print ("  it('check result for %s example/%s-%s', async function() {"%(test_name, test_index, count), file = filename)
+
   print ("    var model = await nn.createModel(" + args + ");", file = filename)
   print ("    var operandIndex = 0;\n", file = filename)
 
@@ -948,14 +969,15 @@ if __name__ == '__main__':
 
   JS_FLAG = True
   with smart_open(jsTest) as js_file:
-    tmp_string = FileNames.SpecFile[:-7].capitalize().replace("_", " ")
-    print ("describe('%s test', function() {"%(tmp_string), file = js_file)
+
+    print ("describe('CTS', function() {", file = js_file)
     print ("  const assert = chai.assert;", file = js_file)
     print ("  const nn = navigator.ml.getNeuralNetworkContext();", file = js_file)
 
+    index_flag = len(Example.get_examples()) == 1
     count = 1
     for i, o in Example.get_examples():
-      js_print_model(i, o, count, js_file)
+      js_print_model(i, o, count, index_flag, js_file)
       count = count + 1
 
     print ('});', file = js_file)
