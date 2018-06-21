@@ -12,10 +12,20 @@ with open(name_file) as file_names:
 
 input_path_parent = "./src/nn/specs/"
 output_path_parent = "./output/"
+output_all_jsTest = output_path_parent + "test-CTS.js"
 
 if os.path.exists(output_path_parent):
   cmd = "rm -r " + output_path_parent
   os.system(cmd)
+
+if not os.path.exists(output_path_parent):
+  os.makedirs(output_path_parent)
+
+all_jsTest_file = open(output_all_jsTest, "w")
+all_jsTest_file.write("describe('CTS', function() {\n")
+all_jsTest_file.write("  const assert = chai.assert;\n")
+all_jsTest_file.write("  const nn = navigator.ml.getNeuralNetworkContext();\n")
+all_jsTest_file.close()
 
 versions = os.listdir(input_path_parent)
 
@@ -48,5 +58,9 @@ for version in versions:
         if not os.path.exists(output_path_jsTest):
           os.makedirs(output_path_jsTest)
 
-        cmd = "python3 ./src/test_generator.py " + input_file + " -m " + output_file_model + " -e " + output_file_example + " -js " + output_file_jsTest
+        cmd = "python3 ./src/test_generator.py " + input_file + " -m " + output_file_model + " -e " + output_file_example + " -js " + output_file_jsTest + " -a " + output_all_jsTest
         os.system(cmd)
+
+all_jsTest_file = open(output_all_jsTest, "a+")
+all_jsTest_file.write("});\n")
+all_jsTest_file.close()

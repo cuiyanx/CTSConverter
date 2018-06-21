@@ -181,7 +181,7 @@ class Type(object):
     for key, value in sorted(Type.__types.items()):
       if JS_FLAG:
         if str(key.split(",")[0]) == "INT32" or str(key.split(",")[0]) == "UINT32":
-          print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + "};", file = filename)
+          print ("    let " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + "};", file = filename)
         else :
           if len(str(key[len(key.split(",")[0]) + 3:-1])) == 0:
             for obj in js_obj:
@@ -189,8 +189,8 @@ class Type(object):
                 data_string = obj.get("value")
           else :
             data_string = "[" + str(key[len(key.split(",")[0]) + 3:-1]) + "]"
-          print ("    var " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: " + str(data_string) + "};", file = filename)
-          print ("    var " + str(value.__name) + "_length = product(" + str(value.__name) + ".dimensions);", file = filename)
+          print ("    let " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: " + str(data_string) + "};", file = filename)
+          print ("    let " + str(value.__name) + "_length = product(" + str(value.__name) + ".dimensions);", file = filename)
       else :
         print ("  OperandType " + str(value.__name) + "(Type::" + str(key) + ");", file = filename)
 
@@ -245,7 +245,7 @@ class Operand(Value):
     def_string = (
         "auto " + self.get_name() + " = "\
             "model->addOperand(&" + vt.get_name() + ")")
-    js_string = ("    var " + self.get_name() +
+    js_string = ("    let " + self.get_name() +
                  " = operandIndex++;\n    model.addOperand(" + vt.get_name() + ");")
     Operand.operands.append(self, def_string, js_string)
 
@@ -777,13 +777,15 @@ def import_source():
       "-e", "--example", help="the output example file", default="-")
   parser.add_argument(
       "-js", "--jsTest", help="the output javascript file", default="-")
+  parser.add_argument(
+      "-a", "--alljsTest", help="the output javascript file with one file", default="-")
   args = parser.parse_args()
 
   if os.path.exists(args.spec):
     FileNames.SpecFile = os.path.basename(args.spec)
     exec (open(args.spec).read())
 
-  return (args.spec, args.model, args.example, args.jsTest)
+  return (args.spec, args.model, args.example, args.jsTest, args.alljsTest)
 
 
 def print_cts_op(filename, op):
@@ -907,8 +909,8 @@ def js_print_model(ex_input, ex_output, count, flag, filename):
     else:
       print ("  it('check result for %s example/%s-%s', async function() {"%(test_name, test_index, count), file = filename)
 
-  print ("    var model = await nn.createModel(" + args + ");", file = filename)
-  print ("    var operandIndex = 0;\n", file = filename)
+  print ("    let model = await nn.createModel(" + args + ");", file = filename)
+  print ("    let operandIndex = 0;\n", file = filename)
 
   for name, value in ex_input.items():
     js_print_examples(name, value, filename)
@@ -954,7 +956,7 @@ if __name__ == '__main__':
   js_obj = []
   js_format.clear()
 
-  (spec, model, example, jsTest) = import_source()
+  (spec, model, example, jsTest, alljsTest) = import_source()
   # Boilerplate
   args = ""
   if len(ModelArgument.get_arguments()) > 0:
@@ -969,7 +971,6 @@ if __name__ == '__main__':
 
   JS_FLAG = True
   with smart_open(jsTest) as js_file:
-
     print ("describe('CTS', function() {", file = js_file)
     print ("  const assert = chai.assert;", file = js_file)
     print ("  const nn = navigator.ml.getNeuralNetworkContext();", file = js_file)
@@ -978,6 +979,10 @@ if __name__ == '__main__':
     count = 1
     for i, o in Example.get_examples():
       js_print_model(i, o, count, index_flag, js_file)
+
+      with open(alljsTest, "a+") as all_js_Test:
+        js_print_model(i, o, count, index_flag, all_js_Test)
+
       count = count + 1
 
     print ('});', file = js_file)
