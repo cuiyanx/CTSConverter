@@ -68,7 +68,11 @@ for version in versions:
         if not os.path.exists(output_path_support_jsTest):
           os.makedirs(output_path_support_jsTest)
 
-        cmd = "python3 ./src/test_generator.py " + input_file_support + " -m " + output_file_support_model + " -e " + output_file_support_example + " -js " + output_file_support_jsTest + " -a " + output_all_jsTest
+        cmd = "python3 ./src/test_generator.py " + input_file_support +\
+              " -m " + output_file_support_model +\
+              " -e " + output_file_support_example +\
+              " -js " + output_file_support_jsTest +\
+              " -a " + output_all_jsTest
         os.system(cmd)
 
     for unsupport_line in unsupport_lines:
@@ -92,7 +96,10 @@ for version in versions:
         if not os.path.exists(output_path_unsupport_jsTest):
           os.makedirs(output_path_unsupport_jsTest)
 
-        cmd = "python3 ./src/test_generator.py " + input_file_unsupport + " -m " + output_file_unsupport_model + " -e " + output_file_unsupport_example + " -js " + output_file_unsupport_jsTest + " -a " + output_all_jsTest
+        cmd = "python3 ./src/test_generator.py " + input_file_unsupport +\
+              " -m " + output_file_unsupport_model +\
+              " -e " + output_file_unsupport_example +\
+              " -js " + output_file_unsupport_jsTest
         os.system(cmd)
 
 all_jsTest_file = open(output_all_jsTest, "a+")

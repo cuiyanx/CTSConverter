@@ -1,1 +1,5 @@
+add_broadcast_quant8.mod.py
+add_quant8.mod.py
+avg_pool_float_5.mod.py
 conv_quant8_large_weights_as_inputs.mod.py
+conv_quant8_channels.mod.py

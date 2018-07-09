@@ -188,7 +188,11 @@ class Type(object):
               if str(value.__name) == obj.get("type_name"):
                 data_string = obj.get("value")
           else :
-            data_string = "[" + str(key[len(key.split(",")[0]) + 3:-1]) + "]"
+            if str(key.split(",")[0]) == "TENSOR_QUANT8_ASYMM" or str(key.split(",")[0]) == "TENSOR_INT32":
+              data_string = "[" + str(key[len(key.split(",")[0]) + 2::]) + "]"
+            else :
+              data_string = "[" + str(key[len(key.split(",")[0]) + 3:-1]) + "]"
+
           print ("    let " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: " + str(data_string) + "};", file = filename)
           print ("    let " + str(value.__name) + "_length = product(" + str(value.__name) + ".dimensions);", file = filename)
       else :
@@ -980,8 +984,9 @@ if __name__ == '__main__':
     for i, o in Example.get_examples():
       js_print_model(i, o, count, index_flag, js_file)
 
-      with open(alljsTest, "a+") as all_js_Test:
-        js_print_model(i, o, count, index_flag, all_js_Test)
+      if alljsTest != "-":
+        with open(alljsTest, "a+") as all_js_Test:
+          js_print_model(i, o, count, index_flag, all_js_Test)
 
       count = count + 1
 
