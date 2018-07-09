@@ -3,12 +3,18 @@
 import os
 import sys
 
-name_file = "./filename.txt"
+name_file_support = "./filename_support.txt"
+name_file_unsupport = "./filename_unsupport.txt"
 
-with open(name_file) as file_names:
-  print "Open names file: " + name_file
+with open(name_file_support) as support_file_names:
+  print "Open support names file: " + name_file_support
 
-  lines = file_names.readlines()
+  support_lines = support_file_names.readlines()
+
+with open(name_file_unsupport) as unsupport_file_names:
+  print "Open support names file: " + name_file_unsupport
+
+  unsupport_lines = unsupport_file_names.readlines()
 
 input_path_parent = "./src/nn/specs/"
 output_path_parent = "./output/"
@@ -31,23 +37,26 @@ versions = os.listdir(input_path_parent)
 
 for version in versions:
   input_path = input_path_parent + version + "/"
-  output_path = output_path_parent + version + "/"
+  output_path_support = output_path_parent + "support/" + version + "/"
+  output_path_unsupport = output_path_parent + "unsupport/" + version + "/"
+
+  output_path_example = output_path_support + "examples/"
+  output_path_model = output_path_support + "models/"
+  output_path_support_jsTest = output_path_support + "jsTests/"
+  output_path_unsupport_jsTest = output_path_unsupport + "jsTests/"
 
   if os.path.isdir(input_path):
-    for line in lines:
-      line = line.strip()
+    for support_line in support_lines:
+      support_line = support_line.strip()
 
-      input_file = input_path + line
-      output_path_example = output_path + "examples/"
-      output_path_model = output_path + "models/"
-      output_path_jsTest = output_path + "jsTests/"
-      output_file_example = output_path_example + line[:-6] + "example.cpp"
-      output_file_model = output_path_model + line[:-6] + "model.cpp"
-      output_file_jsTest = output_path_jsTest + line[:-6] + "js"
+      input_file_support = input_path + support_line
+      output_file_example = output_path_example + support_line[:-6] + "example.cpp"
+      output_file_model = output_path_model + support_line[:-6] + "model.cpp"
+      output_file_support_jsTest = output_path_support_jsTest + support_line[:-6] + "js"
 
-      if os.path.exists(input_file):
-        if not os.path.exists(output_path):
-          os.makedirs(output_path)
+      if os.path.exists(input_file_support):
+        if not os.path.exists(output_path_support):
+          os.makedirs(output_path_support)
 
         if not os.path.exists(output_path_example):
           os.makedirs(output_path_example)
@@ -55,10 +64,34 @@ for version in versions:
         if not os.path.exists(output_path_model):
           os.makedirs(output_path_model)
 
-        if not os.path.exists(output_path_jsTest):
-          os.makedirs(output_path_jsTest)
+        if not os.path.exists(output_path_support_jsTest):
+          os.makedirs(output_path_support_jsTest)
 
-        cmd = "python3 ./src/test_generator.py " + input_file + " -m " + output_file_model + " -e " + output_file_example + " -js " + output_file_jsTest + " -a " + output_all_jsTest
+        cmd = "python3 ./src/test_generator.py " + input_file_support + " -m " + output_file_model + " -e " + output_file_example + " -js " + output_file_support_jsTest + " -a " + output_all_jsTest
+        os.system(cmd)
+
+    for unsupport_line in unsupport_lines:
+      unsupport_line = unsupport_line.strip()
+
+      input_file_unsupport = input_path + unsupport_line
+      output_file_example = output_path_example + unsupport_line[:-6] + "example.cpp"
+      output_file_model = output_path_model + unsupport_line[:-6] + "model.cpp"
+      output_file_unsupport_jsTest = output_path_unsupport_jsTest + unsupport_line[:-6] + "js"
+
+      if os.path.exists(input_file_unsupport):
+        if not os.path.exists(output_path_unsupport):
+          os.makedirs(output_path_unsupport)
+
+        if not os.path.exists(output_path_example):
+          os.makedirs(output_path_example)
+
+        if not os.path.exists(output_path_model):
+          os.makedirs(output_path_model)
+
+        if not os.path.exists(output_path_unsupport_jsTest):
+          os.makedirs(output_path_unsupport_jsTest)
+
+        cmd = "python3 ./src/test_generator.py " + input_file_unsupport + " -m " + output_file_model + " -e " + output_file_example + " -js " + output_file_unsupport_jsTest + " -a " + output_all_jsTest
         os.system(cmd)
 
 all_jsTest_file = open(output_all_jsTest, "a+")
