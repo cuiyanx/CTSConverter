@@ -12,7 +12,7 @@
   "devDependencies": {
   },
   "scripts": {
-    "start": "python ./src/main.py"
+    "start": "python3 ./src/main.py"
   },
   "repository": {
     "type": "git",
