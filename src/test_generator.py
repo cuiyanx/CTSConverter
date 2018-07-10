@@ -181,7 +181,7 @@ class Type(object):
     for key, value in sorted(Type.__types.items()):
       if JS_FLAG:
         type_string = str(key.split(",")[0])
-        data_string = str(key[len(key.split(",")[0]) + 2::])
+        data_string = str(key[len(key.split(",")[0]) + 2:])
 
         if type_string == "INT32" or type_string == "UINT32":
           print ("    let " + str(value.__name) + " = {type: nn." + type_string + "};", file = filename)
@@ -200,7 +200,7 @@ class Type(object):
               print ("    let " + str(value.__name) + " = {type: nn." + type_string +\
                      ", dimensions: [" + dimensions_string[1:-1] + "]};", file = filename)
             else :
-              tmp_string = data_string[len(dimensions_string) + 2::]
+              tmp_string = data_string[len(dimensions_string) + 2:]
               scale_string = tmp_string.split(",")[0]
 
               if len(tmp_string) == len(scale_string):
@@ -213,7 +213,7 @@ class Type(object):
                        ", dimensions: [" + dimensions_string[1:-1] +\
                        "], scale: " + scale_string_tmp + "};", file = filename)
               else :
-                zeroPoint_string = tmp_string[len(scale_string) + 2::]
+                zeroPoint_string = tmp_string[len(scale_string) + 2:]
 
                 if scale_string.find("f") >= 0:
                   scale_string_tmp = scale_string[:-1]
