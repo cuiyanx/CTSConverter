@@ -180,20 +180,51 @@ class Type(object):
   def dump(filename):
     for key, value in sorted(Type.__types.items()):
       if JS_FLAG:
-        if str(key.split(",")[0]) == "INT32" or str(key.split(",")[0]) == "UINT32":
-          print ("    let " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + "};", file = filename)
+        type_string = str(key.split(",")[0])
+        data_string = str(key[len(key.split(",")[0]) + 2::])
+
+        if type_string == "INT32" or type_string == "UINT32":
+          print ("    let " + str(value.__name) + " = {type: nn." + type_string + "};", file = filename)
         else :
-          if len(str(key[len(key.split(",")[0]) + 3:-1])) == 0:
+          if len(data_string[1:-1]) == 0:
             for obj in js_obj:
               if str(value.__name) == obj.get("type_name"):
-                data_string = obj.get("value")
-          else :
-            if str(key.split(",")[0]) == "TENSOR_QUANT8_ASYMM" or str(key.split(",")[0]) == "TENSOR_INT32":
-              data_string = "[" + str(key[len(key.split(",")[0]) + 2::]) + "]"
-            else :
-              data_string = "[" + str(key[len(key.split(",")[0]) + 3:-1]) + "]"
+                dimensions_string = obj.get("value")
 
-          print ("    let " + str(value.__name) + " = {type: nn." + str(key.split(",")[0]) + ", dimensions: " + str(data_string) + "};", file = filename)
+            print ("    let " + str(value.__name) + " = {type: nn." + type_string +\
+                   ", dimensions: [" + str(dimensions_string)[1:-1] + "]};", file = filename)
+          else :
+            dimensions_string = data_string[0:data_string.find("}") + 1]
+
+            if len(dimensions_string) == len(data_string):
+              print ("    let " + str(value.__name) + " = {type: nn." + type_string +\
+                     ", dimensions: [" + dimensions_string[1:-1] + "]};", file = filename)
+            else :
+              tmp_string = data_string[len(dimensions_string) + 2::]
+              scale_string = tmp_string.split(",")[0]
+
+              if len(tmp_string) == len(scale_string):
+                if scale_string.find("f") >= 0:
+                  scale_string_tmp = scale_string[:-1]
+                else :
+                  scale_string_tmp = scale_string
+
+                print ("    let " + str(value.__name) + " = {type: nn." + type_string +\
+                       ", dimensions: [" + dimensions_string[1:-1] +\
+                       "], scale: " + scale_string_tmp + "};", file = filename)
+              else :
+                zeroPoint_string = tmp_string[len(scale_string) + 2::]
+
+                if scale_string.find("f") >= 0:
+                  scale_string_tmp = scale_string[:-1]
+                else :
+                  scale_string_tmp = scale_string
+
+                print ("    let " + str(value.__name) + " = {type: nn." + type_string +\
+                       ", dimensions: [" + dimensions_string[1:-1] +\
+                       "], scale: " + scale_string_tmp +\
+                       ", zeroPoint: " + zeroPoint_string + "};", file = filename)
+
           print ("    let " + str(value.__name) + "_length = product(" + str(value.__name) + ".dimensions);", file = filename)
       else :
         print ("  OperandType " + str(value.__name) + "(Type::" + str(key) + ");", file = filename)
