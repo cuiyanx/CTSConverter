@@ -183,7 +183,7 @@ class Type(object):
         type_string = str(key.split(",")[0])
         data_string = str(key[len(key.split(",")[0]) + 2:])
 
-        if type_string == "INT32" or type_string == "UINT32" or type_string == "FLOAT32":
+        if type_string in ["FLOAT32", "INT32", "UINT32"]:
           print ("    let " + str(value.__name) + " = {type: nn." + type_string + "};", file = filename)
         else :
           if len(data_string[1:-1]) == 0:
@@ -920,7 +920,7 @@ def js_print_assert(obj_outputs, filename):
         print ("      assert.isTrue(almostEqualCTS(%s[i], %s[i]));"%(obj.get("output_name"), obj.get("value_name")), file = filename)
         print ("    }", file = filename)
 
-def js_print_model(ex_input, ex_output, count, flag, filename):
+def js_print_model(ex_input, ex_output, count, filename, flag):
   print ("", file = filename)
 
   test_name = ""
@@ -1000,8 +1000,6 @@ if __name__ == '__main__':
   js_obj_supplement()
 
   print("Input nn test: %s" % spec, file = sys.stderr)
-  print("Output CTS model: %s" % model, file = sys.stderr)
-  print("Output example:" + example, file = sys.stderr)
   print("Output js test: %s \n" % jsTest, file = sys.stderr)
 
   JS_FLAG = True
@@ -1013,11 +1011,11 @@ if __name__ == '__main__':
     index_flag = len(Example.get_examples()) == 1
     count = 1
     for i, o in Example.get_examples():
-      js_print_model(i, o, count, index_flag, js_file)
+      js_print_model(i, o, count, js_file, index_flag)
 
       if alljsTest != "-":
         with open(alljsTest, "a+") as all_js_Test:
-          js_print_model(i, o, count, index_flag, all_js_Test)
+          js_print_model(i, o, count, all_js_Test, index_flag)
 
       count = count + 1
 
@@ -1025,42 +1023,3 @@ if __name__ == '__main__':
 
 #    for obj in js_obj:
 #      print (obj, file = sys.stderr)
-
-  JS_FLAG = False
-  with smart_open(model) as model_file:
-    spec_file = " (from: %s)" % (FileNames.SpecFile)
-
-    print ('// Generated file%s. Do not edit'%(spec_file), file = model_file)
-    print ("void CreateModel(Model *model" + args + ") {", file=model_file)
-
-    # Phase 0: types
-    Type.dump(model_file)
-    # Phase 1: add operands
-    print ("  // Phase 1, operands", file=model_file)
-    Operand.operands.dump(model_file)
-
-    # Phase 2: operations
-    print ("  // Phase 2, operations", file=model_file)
-    TopologicalSort(lambda x: print_cts_op(model_file, x))
-
-    # Phase 3: add inputs and outputs
-    print ("  // Phase 3, inputs and outputs", file=model_file)
-    inputs = Operand.print_operands(Input.get_inputs(True));
-    outputs = Operand.print_operands(Output.get_outputs());
-    print ("  model->identifyInputsAndOutputs(\n" +
-           "    {"+", ".join(inputs)+"},\n    {" + ", ".join(outputs) + "});",
-           file=model_file)
-
-    # Phase 4: set relaxed execution if needed
-    if (Model.isRelaxed()):
-      print ("  // Phase 4: set relaxed execution", file=model_file)
-      print ("  model->relaxComputationFloat32toFloat16(true);", file=model_file)
-
-    # Boilerplate
-    print ("  assert(model->isValid());", file=model_file);
-    print ("}", file=model_file)
-    print (IgnoredOutput.gen_ignored(), file=model_file)
-
-  JS_FLAG = False
-  with smart_open(example) as example_file:
-    Example.dump(example_file)
