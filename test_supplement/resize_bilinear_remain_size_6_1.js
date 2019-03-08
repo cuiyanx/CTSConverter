@@ -2,17 +2,17 @@ describe('CTS Supplement Test', function() {
   const assert = chai.assert;
   const nn = navigator.ml.getNeuralNetworkContext();
 
-  it('check result for Resize bilinear zoom out example/1', async function() {
+  it('check result for Resize bilinear by align_corners(TRUE) remain size example/6', async function() {
     let model = await nn.createModel(options);
     let operandIndex = 0;
 
-    let op1_value = [1, 3, 5, 7, 9, 11, 13, 15, 17];
-    let op2_expect = [1, 4, 10, 13];
+    let op1_value = [1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0];
+    let op2_expect = [1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0, 1.0, 1.0, 2.0, 2.0];
 
     let type2 = {type: nn.INT32};
-    let type0 = {type: nn.TENSOR_FLOAT32, dimensions: [1, 3, 3, 1]};
+    let type0 = {type: nn.TENSOR_FLOAT32, dimensions: [2, 2, 2, 2]};
     let type0_length = product(type0.dimensions);
-    let type1 = {type: nn.TENSOR_FLOAT32, dimensions: [1, 2, 2, 1]};
+    let type1 = {type: nn.TENSOR_FLOAT32, dimensions: [2, 2, 2, 2]};
     let type1_length = product(type1.dimensions);
 
     let op1 = operandIndex++;
@@ -23,10 +23,14 @@ describe('CTS Supplement Test', function() {
     model.addOperand(type2);
     let width = operandIndex++;
     model.addOperand(type2);
+    let align_corners = operandIndex++;
+    model.addOperand(type2);
 
     model.setOperandValue(height, new Int32Array([2]));
     model.setOperandValue(width, new Int32Array([2]));
-    model.addOperation(nn.RESIZE_BILINEAR, [op1, height, width], [op2]);
+    model.setOperandValue(align_corners, new Int32Array([1]));
+
+    model.addOperation(nn.RESIZE_BILINEAR, [op1, height, width, align_corners], [op2]);
 
     model.identifyInputsAndOutputs([op1], [op2]);
     await model.finish();

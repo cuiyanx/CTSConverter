@@ -86,6 +86,7 @@ if __name__ == "__main__":
 
   output_path_root = "./output"
   output_file_all = os.path.join(output_path_root, "cts-all.js")
+  output_file_supplement = os.path.join(output_path_root, "cts_supplement-all.js")
 
   file_dict = dict()
 
@@ -93,7 +94,7 @@ if __name__ == "__main__":
     os.makedirs(output_path_root)
 
   if args_create == "all" or args_create == "cts":
-    support_cts_file = "./filename_support.txt"
+    support_cts_file = "./slice.txt"
 
     with open(support_cts_file) as cts_file:
       cts_file_names = cts_file.readlines()
@@ -124,13 +125,11 @@ if __name__ == "__main__":
     print ("name: " + file_name)
     print ("path: " + file_dict.get(file_name) + "\n")
   '''
-  print ("create cts-all test case file....\n")
-  create(output_file_all, file_dict, file_list)
-
-  if args_create == "all":
-    print ("transfer and create all files are completed")
-  elif args_create == "cts":
-    print ("transfer and create cts files are completed")
-  elif args_create == "supplement":
+  if args_create == "supplement":
+    print ("create cts_supplement-all test case file....\n")
+    create(output_file_supplement, file_dict, file_list)
     print ("create supplement filse are completed")
-
+  else:
+    print ("create cts-all test case file....\n")
+    create(output_file_all, file_dict, file_list)
+    print ("transfer and create all files are completed")
