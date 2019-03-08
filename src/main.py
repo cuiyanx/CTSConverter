@@ -1,6 +1,16 @@
 #!/usr/bin/python3
 
 import os
+import argparse
+
+def get_args():
+  parser = argparse.ArgumentParser()
+  parser.add_argument(
+      "-c", "--create", help="create test file", default="all")
+
+  args = parser.parse_args()
+
+  return args.create
 
 # transfer nn test case to js test case
 def transfer(versions, ipath, opath, names):
@@ -71,39 +81,56 @@ def create(opath, file_dict, file_list):
   with open(opath, "a+") as all_jsTest_file:
     all_jsTest_file.write("});\n")
 
-if __name__ == '__main__':
-  support_names_file = "./filename_support.txt"
+if __name__ == "__main__":
+  args_create = get_args()
 
-  with open(support_names_file) as file_names:
-    name_lines = file_names.readlines()
-    print ("Open support names file: " + support_names_file + "\n")
-
-  input_path_root = "./src/nn/specs"
-  input_path_supplement = "./test_supplement"
   output_path_root = "./output"
   output_file_all = os.path.join(output_path_root, "cts-all.js")
+
+  file_dict = dict()
 
   if not os.path.exists(output_path_root):
     os.makedirs(output_path_root)
 
-  versions = os.listdir(input_path_root)
+  if args_create == "all" or args_create == "cts":
+    support_cts_file = "./filename_support.txt"
 
-  print ("transfer nn test case to js test case....\n")
-  transfer_file_dict = transfer(versions, input_path_root, output_path_root, name_lines)
+    with open(support_cts_file) as cts_file:
+      cts_file_names = cts_file.readlines()
+      print ("Open support cts file: " + support_cts_file + "\n")
 
-  print ("scan test supplement directory....\n")
-  supplement_file_dict = get_supplement_file_names(input_path_supplement, dict())
+    cts_input_path = "./src/nn/specs"
+    versions = os.listdir(cts_input_path)
+
+    print ("transfer nn test case to js test case....\n")
+    transfer_file_dict = transfer(versions, cts_input_path, output_path_root, cts_file_names)
+  else:
+    transfer_file_dict = dict()
+
+  if args_create == "all" or args_create == "supplement":
+    supplement_input_path = "./test_supplement"
+
+    print ("scan test supplement directory....\n")
+    supplement_file_dict = get_supplement_file_names(supplement_input_path, dict())
+  else:
+    supplement_file_dict = dict()
 
   print ("reordering by name....\n")
-  file_dict = dict()
   file_dict.update(transfer_file_dict)
   file_dict.update(supplement_file_dict)
   file_list = sorted(file_dict.keys())
-
+  '''
   for file_name in file_list:
-    print ("name: " + file_name + " -- path: " + file_dict.get(file_name))
-
-  print ("\ncreate cts-all test case file....\n")
+    print ("name: " + file_name)
+    print ("path: " + file_dict.get(file_name) + "\n")
+  '''
+  print ("create cts-all test case file....\n")
   create(output_file_all, file_dict, file_list)
 
-  print ("transfer and create are completed")
+  if args_create == "all":
+    print ("transfer and create all files are completed")
+  elif args_create == "cts":
+    print ("transfer and create cts files are completed")
+  elif args_create == "supplement":
+    print ("create supplement filse are completed")
+

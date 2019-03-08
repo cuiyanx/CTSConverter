@@ -6,6 +6,20 @@ Transfer [nn](https://android.googlesource.com/platform/frameworks/ml) test case
 
 ## Start
 
+### transfer CTS test cases and create all-file include CTS and supplement files
+
 ```sh
 $ npm start
+```
+
+### transfer CTS test cases and create all-file
+
+```sh
+$ npm run cts
+```
+
+### create all-file include supplement files
+
+```sh
+$ npm run supplement
 ```
