@@ -34,9 +34,9 @@ def transfer(versions, ipath, opath, names):
         input_file = os.path.join(input_path, name)
         output_file = os.path.join(output_path, name[:-6] + "js")
 
-        transfer_file_dict[name[:-6] + "js"] = output_path
-
         if os.path.exists(input_file):
+          transfer_file_dict[name[:-6] + "js"] = output_path
+
           cmd = "python3 ./src/test_generator.py " + input_file +\
                 " -js " + output_file
           os.system(cmd)
