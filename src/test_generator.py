@@ -382,13 +382,9 @@ bool is_ignored(int i) {
 class ModelArgument:
   __arguments = []
 
-  def __init__(self, arg_type, arg_name):
-    self.__arg_type = arg_type
+  def __init__(self, arg_name):
     self.__arg_name = arg_name
-    ModelArgument.__arguments.append(" ".join([arg_type, arg_name]))
-
-  def get_arg_type(self):
-    return self.__arg_type
+    ModelArgument.__arguments.append(" ".join([arg_name]))
 
   def get_arg_name(self):
     return self.__arg_name
@@ -972,7 +968,7 @@ def js_print_model(ex_input, ex_output, count, filename, flag):
   print ("    await model.finish();\n", file = filename)
 
   print ("    let compilation = await model.createCompilation();", file = filename)
-  print ("    compilation.setPreference(nn.PREFER_FAST_SINGLE_ANSWER);", file = filename)
+  print ("    compilation.setPreference(getPreferenceCode(options.prefer));", file = filename)
   print ("    await compilation.finish();\n", file = filename)
   print ("    let execution = await compilation.createExecution();\n", file = filename)
 
@@ -994,8 +990,11 @@ if __name__ == '__main__':
   (spec, model, example, jsTest, alljsTest) = import_source()
   # Boilerplate
   args = ""
+
+  ModelArgument("options")
+
   if len(ModelArgument.get_arguments()) > 0:
-    args = ", " + ", ".join(ModelArgument.get_arguments())
+    args = ", ".join(ModelArgument.get_arguments())
 
   js_obj_supplement()
 
