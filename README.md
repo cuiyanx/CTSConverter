@@ -23,3 +23,9 @@ $ npm run supplement
 ```sh
 $ npm run plus
 ```
+
+### get more information for command line
+
+```sh
+$ npm run info
+```
