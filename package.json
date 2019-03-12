@@ -12,7 +12,8 @@
   "devDependencies": {
   },
   "scripts": {
-    "start": "python3 ./src/main.py -t ./src/nn/specs -c cts-all.js",
+    "start": "python3 ./src/main.py -t ./src/nn/specs -p ./V1_0_plus -c cts-all.js",
+    "nn": "python3 ./src/main.py -t ./src/nn/specs -c nn-all.js",
     "supplement": "python3 ./src/main.py -s ./test_supplement -c supplement-all.js",
     "plus": "python3 ./src/main.py -p ./V1_0_plus -c plus-all.js",
     "info": "python3 ./src/main.py -h"

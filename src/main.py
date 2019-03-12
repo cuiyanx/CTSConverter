@@ -5,10 +5,10 @@ import argparse
 
 def get_args():
   parser = argparse.ArgumentParser()
-  parser.add_argument("-c", "--create", help = "create all test file", default = "-")
-  parser.add_argument("-t", "--transfer", help = "transfer nn test file", default = "-")
-  parser.add_argument("-s", "--supplement", help = "include supplement test file", default = "-")
-  parser.add_argument("-p", "--plus", help = "include plus test file", default = "-")
+  parser.add_argument("-c", "--create", help = "'-c [file name]', create all test file", default = "-")
+  parser.add_argument("-t", "--transfer", help = "[option] '-t [nn directory]', transfer and include nn test file", default = "-")
+  parser.add_argument("-s", "--supplement", help = "[option] '-s [supplement directory]', include supplement test file", default = "-")
+  parser.add_argument("-p", "--plus", help = "[option] '-p [plus directory]', include plus test file", default = "-")
 
   args = parser.parse_args()
 
