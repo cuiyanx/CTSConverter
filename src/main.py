@@ -84,6 +84,7 @@ def create(opath, file_dict, file_list):
     all_jsTest_file.write("describe('CTS', function() {\n")
     all_jsTest_file.write("  const assert = chai.assert;\n")
     all_jsTest_file.write("  const nn = navigator.ml.getNeuralNetworkContext();\n")
+    all_jsTest_file.write("\n")
 
   for (file_num, file_name) in enumerate(file_list):
     with open(file_dict.get(file_name), "r") as file_read:
