@@ -4,12 +4,12 @@ describe('CTS Supplement Test', function() {
   const nn = navigator.ml.getNeuralNetworkContext();
 
   it('check result for Add example', async function() {
-    const value0 = 0.4;
-    const value1 = 0.5;
+    let value0 = 0.4;
+    let value1 = 0.5;
     let operandIndex = 0;
     let model = await nn.createModel(options);
-    const float32TensorType = {type: nn.TENSOR_FLOAT32, dimensions: TENSOR_DIMENSIONS};
-    const tensorLength = product(float32TensorType.dimensions);
+    let float32TensorType = {type: nn.TENSOR_FLOAT32, dimensions: TENSOR_DIMENSIONS};
+    let tensorLength = product(float32TensorType.dimensions);
 
     let fusedActivationFuncNone = operandIndex++;
     model.addOperand({type: nn.INT32});
