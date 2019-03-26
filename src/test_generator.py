@@ -427,6 +427,7 @@ class Parameter(Input):
     self.initializer = initializer
     self.cpptype = TypeLookup.get_cpptype(vt)
     self.isFloat = TypeLookup.is_float(vt)
+    self.vt = vt
 
   def is_internal(self):
     return True
@@ -442,10 +443,12 @@ class Parameter(Input):
             "sizeof(" + self.cpptype + ") * " + str(len(self.initializer)) ]
 
     if JS_FLAG:
-      if self.isFloat:
-        array_str = "new Float32Array"
-      else :
+      if self.vt in ["INT32", "TENSOR_INT32", "UINT32"]:
         array_str = "new Int32Array"
+      elif self.vt == "TENSOR_QUANT8_ASYMM":
+        array_str = "new Uint8Array"
+      else :
+        array_str = "new Float32Array"
       stmt = "  model.setOperandValue(" + self.get_name() + ", " + array_str + "([" + ", ".join(js_data) + "]));"
     else :
       stmt = "\n  ".join([init, "model->setOperandValue(" + ", ".join(args)+");"])
@@ -859,8 +862,10 @@ def js_print_set_operand_value(obj_inputs, filename):
       if not obj_input == js_obj_input:
         for obj in js_obj:
           if str(obj_input) == obj.get("obj"):
-            if obj.get("type") == "INT32" or obj.get("type") == "TENSOR_INT32" or obj.get("type") == "UINT32":
+            if obj.get("type") in ["INT32", "TENSOR_INT32", "UINT32"]:
               str_array = "Int32Array"
+            elif obj.get("type") == "TENSOR_QUANT8_ASYMM":
+              str_array = "Uint8Array"
             else :
               str_array = "Float32Array"
 
@@ -878,8 +883,10 @@ def js_print_set_input_value(only_input, filename):
 
   for obj in js_obj:
     if str(only_input) == obj.get("obj"):
-      if obj.get("type") == "INT32" or obj.get("type") == "TENSOR_INT32" or obj.get("type") == "UINT32":
+      if obj.get("type") in ["INT32", "TENSOR_INT32", "UINT32"]:
         str_array = "Int32Array"
+      elif obj.get("type") == "TENSOR_QUANT8_ASYMM":
+        str_array = "Uint8Array"
       else :
         str_array = "Float32Array"
 
@@ -896,8 +903,10 @@ def js_print_set_output_value(obj_outputs, filename):
   for obj_output in obj_outputs:
     for obj in js_obj:
       if str(obj_output) == obj.get("obj"):
-        if obj.get("type") == "INT32" or obj.get("type") == "TENSOR_INT32" or obj.get("type") == "UINT32":
+        if obj.get("type") in ["INT32", "TENSOR_INT32", "UINT32"]:
           str_array = "Int32Array"
+        elif obj.get("type") == "TENSOR_QUANT8_ASYMM":
+          str_array = "Uint8Array"
         else :
           str_array = "Float32Array"
 
