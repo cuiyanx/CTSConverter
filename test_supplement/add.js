@@ -1,9 +1,9 @@
 describe('CTS Supplement Test', function() {
   const assert = chai.assert;
-  const TENSOR_DIMENSIONS = [2, 2, 2, 2];
   const nn = navigator.ml.getNeuralNetworkContext();
 
   it('check result for Add example', async function() {
+    let TENSOR_DIMENSIONS = [2, 2, 2, 2];
     let value0 = 0.4;
     let value1 = 0.5;
     let operandIndex = 0;

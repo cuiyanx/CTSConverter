@@ -56,7 +56,6 @@ describe('CTS Supplement Test', function() {
                         49, 49, 50, 50, 51, 51, 52, 52, 53, 53, 54, 54,
                         55, 55, 56, 56, 57, 57, 58, 58, 59, 59, 60, 60];
 
-
     for (let i = 0; i < length; ++i) {
       assert.isTrue(almostEqualCTS(outputData[i], expectedData[i]));
     }
