@@ -35,7 +35,7 @@ $ npm run info
 $ python3 ./src/main.py -t ./src/nn
 ```
 
-3. Create all test case file as `cts_supplement-all.js` from `./test_supplement`.
+2. Create all test case file as `cts_supplement-all.js` from `./test_supplement`.
 
 ```shell
 $ python3 ./src/main.py -s ./test_supplement -a cts_supplement-all.js
