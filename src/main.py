@@ -2,6 +2,7 @@
 
 import os
 import argparse
+import json
 
 def get_args():
   parser = argparse.ArgumentParser()
@@ -48,26 +49,25 @@ def get_file_names(ipath, suffixName):
   return file_names_dict
 
 # transfer nn test case to js test case
-def transfer(ipath, opath, names):
-  dirs = os.listdir(ipath)
+def transfer(ipath, opath, version_names):
+  for (version, names) in version_names.items():
+    input_dir = os.path.join(ipath, version)
+    output_dir = os.path.join(opath, version)
 
-  for dir in dirs:
-    idir = os.path.join(ipath, dir)
-    odir = os.path.join(opath, dir)
+    assert os.path.exists(input_dir), "input directory is not exist: %s"%input_dir
 
-    if os.path.isdir(idir):
-      os.makedirs(odir)
-      transfer(idir, odir, names)
-    else:
-      for name in names:
-        name = name.strip()
+    if not os.path.exists(output_dir):
+      os.makedirs(output_dir)
 
-        if name == dir:
-          input_file = idir
-          output_file = os.path.join(opath, dir[:-6] + "js")
-          cmd = "python3 ./src/test_generator.py " + input_file +\
-                " -js " + output_file
-          os.system(cmd)
+    for name in names:
+      input_file = os.path.join(input_dir, name)
+      output_file = os.path.join(output_dir, name[:-6] + "js")
+
+      assert os.path.exists(input_file), "input file is not exist: %s"%input_file
+
+      cmd = "python3 ./src/cts_generator.py " + input_file +\
+            " -js " + output_file
+      os.system(cmd)
 
 # create all test case file
 def create(opath, file_dict, file_list, describe):
@@ -83,7 +83,7 @@ def create(opath, file_dict, file_list, describe):
       file_text = file_read.readlines()
 
       for (line_num, line_text) in enumerate(file_text):
-        if line_num in range(4, len(file_text) - 1):
+        if line_num in range(5, len(file_text) - 1):
           with open(opath, "a+") as all_jsTest_file:
             all_jsTest_file.write(line_text)
 
@@ -108,16 +108,16 @@ if __name__ == "__main__":
   file_dict_all = dict()
 
   if not args_transfer == "-":
-    output_path_transfer = os.path.join(output_path_root, "cts")
+    output_path_transfer = os.path.join(output_path_root, "cts", "specs")
     if os.path.exists(output_path_transfer):
       del_file(output_path_transfer, False)
     else:
       os.makedirs(output_path_transfer)
 
-    support_cts_file = "./slice.txt"
+    support_cts_file = "./slice.json"
 
     with open(support_cts_file) as cts_file:
-      cts_file_names = cts_file.readlines()
+      cts_file_names = json.load(cts_file)
       print ("Open support cts file: " + support_cts_file + "\n")
 
     print ("transfer nn test case to js test case....\n")
