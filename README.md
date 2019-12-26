@@ -1,5 +1,5 @@
 # nnTestTransfer
-Transfer [nn](https://android.googlesource.com/platform/frameworks/ml) test case to [webml](https://github.com/intel/webml-polyfill) test case
+Transfer [nn tag: android-cts-10.0_r2](https://android.googlesource.com/platform/frameworks/ml/+/refs/tags/android-cts-10.0_r2) test case to [webml](https://github.com/intel/webml-polyfill) test case
 
 ## Prerequisites
 * Need `python3`
@@ -20,7 +20,7 @@ $ npm run info
 
 ```shell
 -h, --help            show this help message and exit
--a, --all             [option] '-a [file name]', create all test file
+-a, --all             [option] '-a [file directory]', create all test file
 -t, --transfer        [option] '-t [transfer directory]', transfer nn test file
 -c, --cts             [option] '-c [cts directory]', include cts test file
 -s, --supplement      [option] '-s [supplement directory]', include supplement test file
@@ -38,17 +38,17 @@ $ python3 ./src/main.py -t ./src/nn
 2. Create all test case file as `cts_supplement-all.js` from `./test_supplement`.
 
 ```shell
-$ python3 ./src/main.py -s ./test_supplement -a cts_supplement-all.js
+$ python3 ./src/main.py -s ./test_supplement -a ./output/cts_supplement-all.js
 ```
 
 3. Transfer nn test cases from `./src/nn` and create all test case file as `cts-all.js` that include cts and plus test case.
 
 ```shell
-$ python3 ./src/main.py -t ./src/nn -c ./output/cts -p ./V1_0_plus -a cts-all.js
+$ python3 ./src/main.py -t ./src/nn -c ./output/cts -p ./V1_0_plus -a ./output/cts-all.js
 ```
 
 4. Create all test case file as `all-cts-supplement-plus.js` that include cts and supplement and plus test case.
 
 ```shell
-$ python3 ./src/main.py -c ./output/cts -s ./test_supplement -p ./V1_0_plus -a all-cts-supplement-plus.js
+$ python3 ./src/main.py -c ./output/cts -s ./test_supplement -p ./V1_0_plus -a ./output/all-cts-supplement-plus.js
 ```

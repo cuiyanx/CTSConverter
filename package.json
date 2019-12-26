@@ -12,7 +12,7 @@
   "devDependencies": {
   },
   "scripts": {
-    "start": "python3 ./src/main.py -t ./src/nn -c ./output/cts -p ./V1_0_plus -a cts-all.js",
+    "start": "python3 ./src/main.py -t ./src/nn -c ./output/cts -p ./V1_0_plus -a ./output/cts-all.js",
     "info": "python3 ./src/main.py -h"
   },
   "repository": {

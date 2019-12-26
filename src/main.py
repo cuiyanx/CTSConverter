@@ -6,7 +6,7 @@ import json
 
 def get_args():
   parser = argparse.ArgumentParser()
-  parser.add_argument("-a", "--all", help = "[option] '-a [file name]', create all test file", default = "-")
+  parser.add_argument("-a", "--all", help = "[option] '-a [file directory]', create all test file", default = "-")
   parser.add_argument("-t", "--transfer", help = "[option] '-t [transfer directory]', transfer nn test file", default = "-")
   parser.add_argument("-c", "--cts", help = "[option] '-c [cts directory]', include cts test file", default = "-")
   parser.add_argument("-s", "--supplement", help = "[option] '-s [supplement directory]', include supplement test file", default = "-")
@@ -41,7 +41,10 @@ def get_file_names(ipath, suffixName):
 
     if os.path.isfile(path_or_file):
       if name[-3:] == suffixName:
-        file_names_dict[name] = path_or_file
+        if not name == args_all:
+          file_names_dict[name] = path_or_file
+        else :
+          print ("skip file: %s"%path_or_file)
     else:
       tmp_dict = get_file_names(path_or_file, suffixName)
       file_names_dict.update(tmp_dict)
@@ -97,23 +100,25 @@ def create(opath, file_dict, file_list, describe):
 if __name__ == "__main__":
   (args_all, args_transfer, args_cts, args_supplement, args_plus) = get_args()
 
+  path_root = "./"
   output_path_root = "./output"
   if not os.path.exists(output_path_root):
     os.makedirs(output_path_root)
 
-  output_file_all = os.path.join(output_path_root, args_all)
+  output_file_all = os.path.join(path_root, args_all)
 
   describeString = "CTS"
 
   file_dict_all = dict()
 
   if not args_transfer == "-":
-    output_path_transfer = os.path.join(output_path_root, "cts", "specs")
-    if os.path.exists(output_path_transfer):
-      del_file(output_path_transfer, False)
+    output_path_transfer_clear = os.path.join(output_path_root, "cts")
+    if os.path.exists(output_path_transfer_clear):
+      del_file(output_path_transfer_clear, False)
     else:
-      os.makedirs(output_path_transfer)
+      os.makedirs(output_path_transfer_clear)
 
+    output_path_transfer = os.path.join(output_path_transfer_clear, "specs")
     support_cts_file = "./slice.json"
 
     with open(support_cts_file) as cts_file:
@@ -124,12 +129,12 @@ if __name__ == "__main__":
     transfer(args_transfer, output_path_transfer, cts_file_names)
 
   if not args_cts == "-":
-    print ("scan test cts directory....\n")
+    print ("scan test cts directory....")
     cts_file_dict = get_file_names(args_cts, ".js")
     file_dict_all.update(cts_file_dict)
 
   if not args_supplement == "-":
-    print ("scan test supplement directory....\n")
+    print ("scan test supplement directory....")
 
     describeString = "CTS Supplement Test"
 
@@ -137,15 +142,18 @@ if __name__ == "__main__":
     file_dict_all.update(supplement_file_dict)
 
   if not args_plus == "-":
-    print ("scan test plus directory....\n")
+    print ("scan test plus directory....")
     plus_file_dict = get_file_names(args_plus, ".js")
     file_dict_all.update(plus_file_dict)
 
   if not args_all == "-":
-    print ("reordering by name....\n")
+    print ("reordering by name....")
     file_list = sorted(file_dict_all.keys())
 
-    print ("create all test case file....\n")
+    print ("create all test case file: %s"%str(output_file_all))
     create(output_file_all, file_dict_all, file_list, describeString)
 
-  print ("transfer and create all files are completed")
+  if not args_transfer == "-":
+    print ("transfer and create all files are completed")
+  else :
+    print ("create all files are completed")
