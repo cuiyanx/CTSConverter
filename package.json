@@ -1,6 +1,6 @@
 {
-  "name": "nntesttransfer",
-  "version": "1.0.0",
+  "name": "CTSConverter",
+  "version": "1.2.0",
   "description": "Transfer nn test case to webml test case",
   "main": "./src/main.py",
   "directories": {
@@ -17,12 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cuiyanx/nnTestTransfer.git"
+    "url": "git+https://github.com/cuiyanx/CTSConverter.git"
   },
   "author": "yanx.cui@intel.com",
   "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/cuiyanx/nnTestTransfer/issues"
+    "url": "https://github.com/cuiyanx/CTSConverter/issues"
   },
-  "homepage": "https://github.com/cuiyanx/nnTestTransfer#readme"
+  "homepage": "https://github.com/cuiyanx/CTSConverter#readme"
 }

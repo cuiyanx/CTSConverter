@@ -1,4 +1,4 @@
-# nnTestTransfer
+# CTSConverter
 Transfer [nn (tag: android-cts-10.0_r2)](https://android.googlesource.com/platform/frameworks/ml/+/refs/tags/android-cts-10.0_r2) test case to [webml](https://github.com/intel/webml-polyfill) test case
 
 ## Prerequisites
