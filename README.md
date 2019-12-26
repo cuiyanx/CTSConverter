@@ -29,10 +29,10 @@ $ npm run info
 
 ## Example
 
-1. Transfer nn test cases from `./src/nn` and output into `./output/cts`.
+1. Transfer nn test cases from `./src/nn/specs` and output into `./output/cts`.
 
 ```shell
-$ python3 ./src/main.py -t ./src/nn
+$ python3 ./src/main.py -t ./src/nn/specs
 ```
 
 2. Create all test case file as `cts_supplement-all.js` from `./test_supplement`.
@@ -41,10 +41,10 @@ $ python3 ./src/main.py -t ./src/nn
 $ python3 ./src/main.py -s ./test_supplement -a ./output/cts_supplement-all.js
 ```
 
-3. Transfer nn test cases from `./src/nn` and create all test case file as `cts-all.js` that include cts and plus test case.
+3. Transfer nn test cases from `./src/nn/specs` and create all test case file as `cts-all.js` that include cts and plus test case.
 
 ```shell
-$ python3 ./src/main.py -t ./src/nn -c ./output/cts -p ./V1_0_plus -a ./output/cts-all.js
+$ python3 ./src/main.py -t ./src/nn/specs -c ./output/cts -p ./V1_0_plus -a ./output/cts-all.js
 ```
 
 4. Create all test case file as `all-cts-supplement-plus.js` that include cts and supplement and plus test case.
