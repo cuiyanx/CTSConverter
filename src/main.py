@@ -41,10 +41,7 @@ def get_file_names(ipath, suffixName):
 
     if os.path.isfile(path_or_file):
       if name[-3:] == suffixName:
-        if not name == args_all:
-          file_names_dict[name] = path_or_file
-        else :
-          print ("skip file: %s"%path_or_file)
+        file_names_dict[name] = path_or_file
     else:
       tmp_dict = get_file_names(path_or_file, suffixName)
       file_names_dict.update(tmp_dict)
@@ -105,7 +102,11 @@ if __name__ == "__main__":
   if not os.path.exists(output_path_root):
     os.makedirs(output_path_root)
 
-  output_file_all = os.path.join(path_root, args_all)
+  (output_file_all_path, output_file_all_name) = os.path.split(args_all)
+  if output_file_all_path == "":
+    output_file_all = os.path.join(path_root, args_all)
+  else :
+    output_file_all = args_all
 
   describeString = "CTS"
 
@@ -147,6 +148,15 @@ if __name__ == "__main__":
     file_dict_all.update(plus_file_dict)
 
   if not args_all == "-":
+    skip_files = ["cts-all.js", "cts_supplement-all.js"]
+    (args_all_path, args_all_name) = os.path.split(args_all)
+    skip_files.append(args_all_name)
+
+    for name in skip_files:
+      if name in file_dict_all:
+        print ("skip creating file name: %s"%file_dict_all[name])
+        del file_dict_all[name]
+
     print ("reordering by name....")
     file_list = sorted(file_dict_all.keys())
 
@@ -154,6 +164,12 @@ if __name__ == "__main__":
     create(output_file_all, file_dict_all, file_list, describeString)
 
   if not args_transfer == "-":
-    print ("transfer and create all files are completed")
+    if not args_all == "-":
+      print ("transfer and create all files are completed")
+    else :
+      print ("transfer all files are completed")
   else :
-    print ("create all files are completed")
+    if not args_all == "-":
+      print ("create all files are completed")
+    else :
+      print ("nothing to do!! get info with 'npm run info' command")
