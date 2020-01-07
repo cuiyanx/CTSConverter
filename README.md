@@ -6,19 +6,19 @@ Transfer [nn (tag: android-cts-10.0_r2)](https://android.googlesource.com/platfo
 
 ## Start
 
-### create `cts-all.js` into `./output`, this file include `CTS` and `CTS plus` test cases
+### transfer nn test case into `./output/cts` and create `cts-all.js` into `./output`, `cts-all.js` includes test cases in `./output/cts` directory and its sub directory.
 
 ```shell
 $ npm start
 ```
 
-### update `cts-all.js` into `./output`, this file include `CTS` and `CTS plus` test cases
+### update `cts-all.js` into `./output`, `cts-all.js` includes test cases in `./output/cts` directory and its sub directory and `./V1_0_plus` directory.
 
 ```shell
 $ npm run updateCTS
 ```
 
-### update `cts_supplement-all.js` into `./output`, this file include `CTS supplement` test cases
+### update `cts_supplement-all.js` into `./output`, `cts_supplement-all.js` includes test cases in `./test_supplement` directory.
 
 ```shell
 $ npm run updateCTS_S
@@ -32,7 +32,7 @@ $ npm run info
 
 ```shell
 -h, --help            show this help message and exit
--a, --all             [option] '-a [file relative directory]', create all test file
+-a, --all             [option] '-a [all-file relative directory]', create all test file
 -t, --transfer        [option] '-t [transfer relative directory]', transfer nn test file
 -c, --cts             [option] '-c [cts relative directory]', include cts test file
 -s, --supplement      [option] '-s [supplement relative directory]', include supplement test file
