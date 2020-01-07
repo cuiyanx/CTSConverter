@@ -1,16 +1,16 @@
-describe('CTS', function() {
+describe('CTS Supplement Test', function() {
   const assert = chai.assert;
   const nn = navigator.ml.getNeuralNetworkContext();
 
-  it('check result for MAXIMUM as 4-D tensor example', async function() {
+  it('check result for MAXIMUM example', async function() {
     let model = await nn.createModel(options);
     let operandIndex = 0;
 
-    let op1_value = [5.0, 5.0, 5.0, 5.0];
-    let op2_value = [3.0, 3.0, 3.0, 3.0];
-    let op3_expect = [5.0, 5.0, 5.0, 5.0];
+    let op1_value = [5.0, 5.0];
+    let op2_value = [3.0, 3.0];
+    let op3_expect = [5.0, 5.0];
 
-    let type0 = {type: nn.TENSOR_FLOAT32, dimensions: [1, 2, 2, 1]};
+    let type0 = {type: nn.TENSOR_FLOAT32, dimensions: [2]};
     let type0_length = product(type0.dimensions);
 
     let op1 = operandIndex++;
