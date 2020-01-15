@@ -6,25 +6,20 @@ Transfer [nn (tag: android-cts-10.0_r2)](https://android.googlesource.com/platfo
 
 ## Start
 
-### transfer nn test case into `./output/cts` and create `cts-all.js` into `./output`, `cts-all.js` includes test cases in `./output/cts` directory and its sub directory.
+Update or create `./output/cts-all.js` and `./output/cts_supplement-all.js` files.
+`./output/cts-all.js` includes test cases in `./output/cts` directory and its sub directory and `./V1_0_plus` directory, `./output/cts_supplement-all.js` includes test cases in `./test_supplement` directory.
 
 ```shell
 $ npm start
 ```
 
-### update `cts-all.js` into `./output`, `cts-all.js` includes test cases in `./output/cts` directory and its sub directory and `./V1_0_plus` directory.
+## Transfer nn test case into `./output/cts`
 
 ```shell
-$ npm run updateCTS
+$ npm run transfer
 ```
 
-### update `cts_supplement-all.js` into `./output`, `cts_supplement-all.js` includes test cases in `./test_supplement` directory.
-
-```shell
-$ npm run updateCTS_S
-```
-
-### get more information for command line
+## Get more information for command line
 
 ```shell
 $ npm run info
@@ -47,14 +42,14 @@ $ npm run info
 $ python3 ./src/main.py -t ./src/nn/specs
 ```
 
-2. Create all test case file as `cts_supplement-all.js` from `./test_supplement`.
+2. Create all test cases file as `./output/cts_supplement-all.js` from `./test_supplement`.
 
 ```shell
 $ python3 ./src/main.py -s ./test_supplement -a ./output/cts_supplement-all.js
 ```
 
-3. Transfer nn test cases from `./src/nn/specs` and create all test case file as `cts-all.js` that include cts and plus test case.
+3. Create all test cases file as `./output/cts-all.js` from `./output/cts` and `./V1_0_plus`.
 
 ```shell
-$ python3 ./src/main.py -t ./src/nn/specs -c ./output/cts -p ./V1_0_plus -a ./output/cts-all.js
+$ python3 ./src/main.py -c ./output/cts -p ./V1_0_plus -a ./output/cts-all.js
 ```
