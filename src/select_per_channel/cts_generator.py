@@ -552,7 +552,7 @@ def DumpJSTest(model, example, js_fd):
             print ("    model.addOperand(%s);"%op.type, file = js_fd)
 
             if str(op.type) in per_channel_types.keys():
-                print ("    model.setOperandSymmPerChannelQuantParams(%s, %s);"%(op.type, per_channel_types[str(op.type)]), file = js_fd)
+                print ("    model.setOperandSymmPerChannelQuantParams(operandIndex++, %s);"%per_channel_types[str(op.type)], file = js_fd)
         print ("", file = js_fd)
 
         # set other inputs value(support only one input)
