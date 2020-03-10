@@ -322,9 +322,10 @@ TEST_AVAILABLE_SINCE({version}, {test_name}, {namespace}::{create_model_name})\n
 def typeToArray(targetType):
     if targetType in ["INT32", "TENSOR_INT32", "UINT32"]:
         str_array = "Int32Array"
-    elif targetType in ["TENSOR_QUANT8_ASYMM",
-                        "TENSOR_QUANT8_SYMM_PER_CHANNEL"]:
+    elif targetType in ["TENSOR_QUANT8_ASYMM"]:
         str_array = "Uint8Array"
+    elif targetType in ["TENSOR_QUANT8_SYMM_PER_CHANNEL"]:
+        str_array = "Int8Array"
     else :
         str_array = "Float32Array"
     return str_array
@@ -538,8 +539,8 @@ def DumpJSTest(model, example, js_fd):
                     typeDef = "    let %s = {type: nn.%s, dimensions: [%s], scale: %s, zeroPoint: %d};\n    let %s_length = product(%s.dimensions);"%(
                               t, t.type, t.GetDimensionsString()[1:-1], tg.PrettyPrintAsFloat(t.scale)[:-1], t.zeroPoint, t, t)
                 else:
-                    typeDef = "    let %s = {type: nn.%s, dimensions: [%s], scale: %s, zeroPoint: %d};\n    let %s_length = product(%s.dimensions);"%(
-                              t, t.type, t.GetDimensionsString()[1:-1], tg.PrettyPrintAsFloat(t.scale)[:-1], t.zeroPoint, t, t)
+                    typeDef = "    let %s = {type: nn.%s, dimensions: [%s]};\n    let %s_length = product(%s.dimensions);"%(
+                              t, t.type, t.GetDimensionsString()[1:-1], t, t)
 
                     per_channel_types[str(t)] = t.extraParams.GetJSConstructor()
 

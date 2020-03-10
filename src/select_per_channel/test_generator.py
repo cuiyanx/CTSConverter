@@ -292,7 +292,7 @@ class SymmPerChannelQuantParams():
 
   # For js
   def GetJSConstructor(self):
-    return "{channelDim=%d, scales=[%s]}" % (self.channelDim,
+    return "{channelDim: %d, scales: new Float32Array([%s])}" % (self.channelDim,
         ", ".join(str(x) for x in self.scales))
   # end
 
