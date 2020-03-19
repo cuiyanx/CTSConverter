@@ -351,6 +351,7 @@ def DumpJSTest(model, example, js_fd):
             if t.type == "FLOAT16":
                 t.type = "FLOAT32"
 
+    '''
     # select specifying type models
     select_specifying_flag = False
     if model.operations[0].optype == "CONV_2D" or model.operations[0].optype == "DEPTHWISE_CONV_2D":
@@ -361,6 +362,7 @@ def DumpJSTest(model, example, js_fd):
     if select_specifying_flag == False:
         print ("    skip not select types: %s" %example.examplesName, file = sys.stderr)
         return
+    '''
 
     # support layout: NHWC
     for p in example.model.GetParameters():
