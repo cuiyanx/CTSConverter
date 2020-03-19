@@ -324,7 +324,7 @@ def typeToArray(targetType):
         str_array = "Int32Array"
     elif targetType in ["TENSOR_QUANT8_ASYMM"]:
         str_array = "Uint8Array"
-    elif targetType in ["TENSOR_QUANT8_SYMM_PER_CHANNEL"]:
+    elif targetType in ["TENSOR_QUANT8_SYMM_PER_CHANNEL", "TENSOR_QUANT8_ASYMM_SIGNED"]:
         str_array = "Int8Array"
     else :
         str_array = "Float32Array"
@@ -351,19 +351,16 @@ def DumpJSTest(model, example, js_fd):
             if t.type == "FLOAT16":
                 t.type = "FLOAT32"
 
-    '''
-    # select 'TENSOR_QUANT8_SYMM_PER_CHANNEL' type models
-    per_c_flag = False
-    select_types = ["TENSOR_QUANT8_SYMM_PER_CHANNEL"]
-    for t in model.GetTypes():
-        if t.type in select_types:
-            per_c_flag = True
+    # select specifying type models
+    select_specifying_flag = False
+    if model.operations[0].optype == "CONV_2D" or model.operations[0].optype == "DEPTHWISE_CONV_2D":
+        if model.operands[0].type.type == "TENSOR_QUANT8_ASYMM_SIGNED" and \
+           model.operands[1].type.type == "TENSOR_QUANT8_SYMM_PER_CHANNEL":
+            select_specifying_flag = True
 
-    if per_c_flag == False:
-        print ("    skip not select types: %s (%s)" %(
-               select_types, example.examplesName), file = sys.stderr)
+    if select_specifying_flag == False:
+        print ("    skip not select types: %s" %example.examplesName, file = sys.stderr)
         return
-    '''
 
     # support layout: NHWC
     for p in example.model.GetParameters():
@@ -554,7 +551,8 @@ def DumpJSTest(model, example, js_fd):
             print ("    model.addOperand(%s);"%op.type, file = js_fd)
 
             if str(op.type) in per_channel_types.keys():
-                print ("    model.setOperandSymmPerChannelQuantParams(operandIndex++, %s);"%per_channel_types[str(op.type)], file = js_fd)
+                print ("    model.setOperandSymmPerChannelQuantParams(%s, %s);"
+                       %(op, per_channel_types[str(op.type)]), file = js_fd)
         print ("", file = js_fd)
 
         # set other inputs value(support only one input)
