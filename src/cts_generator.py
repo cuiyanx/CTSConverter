@@ -354,10 +354,8 @@ def DumpJSTest(model, example, js_fd):
     '''
     # select specifying type models
     select_specifying_flag = False
-    if model.operations[0].optype in ["CONV_2D", "DEPTHWISE_CONV_2D"]:
-        if model.operands[0].type.type == "TENSOR_QUANT8_ASYMM_SIGNED" and \
-           model.operands[1].type.type == "TENSOR_QUANT8_SYMM_PER_CHANNEL":
-            select_specifying_flag = True
+    if model.operations[0].optype in ["AVERAGE_POOL_2D", "DEQUANTIZE", "QUANTIZE"]:
+        select_specifying_flag = True
 
     if not select_specifying_flag:
         print ("    skip not select types: %s" % example.examplesName, file = sys.stderr)

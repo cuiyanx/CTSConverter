@@ -1396,6 +1396,7 @@ class Configuration:
         "LSTM",
         "MAX_POOL_2D",
         "MUL",
+        "QUANTIZE",
         "RELU",
         "RELU1",
         "RELU6",
