@@ -354,7 +354,7 @@ def DumpJSTest(model, example, js_fd):
     '''
     # select specifying type models
     select_specifying_flag = False
-    if model.operations[0].optype in ["AVERAGE_POOL_2D", "DEQUANTIZE", "QUANTIZE"]:
+    if model.operations[0].optype in ["SOFTMAX"]:
         select_specifying_flag = True
 
     if not select_specifying_flag:
